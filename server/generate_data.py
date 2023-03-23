@@ -65,7 +65,7 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
             redis_client.zadd(
                 f"room:{room_code}:messages", {message_id: message["timestamp"]}
             )
-            redis_client.hset(f"messages:{message['id']}", mapping=message)
+            redis_client.hset(f"message:{message['id']}", mapping=message)
 
     # Close Redis connection
     redis_client.close()

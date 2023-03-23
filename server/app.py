@@ -19,8 +19,9 @@ class App:
 
     def get_message(self, message_id):
         """Get a message by id"""
-        return self.redis_client.hgetall(f"messages:{message_id}")
+        return self.redis_client.hgetall(f"message:{message_id}")
 
+    # TODO: get also last message in room
     def get_all_user_rooms(self, user_id):
         """Get all rooms for a user"""
         return self.redis_client.smembers(f"user:{user_id}:rooms")
@@ -39,7 +40,7 @@ class App:
             "text": text,
         }
         # store message itself
-        self.redis_client.hset(f"messages:{message_id}", mapping=message)
+        self.redis_client.hset(f"message:{message_id}", mapping=message)
 
         # store message in room
         self.redis_client.zadd(
@@ -49,20 +50,20 @@ class App:
         self.index_message_text(room_code, message_id, text)
         return message
 
-    def search_in_messages(self, room_code, text):
+    def basic_search_in_messages(self, room_code, text):
         """Search for a text in messages of a room
         Only basic with case sensitivity"""
         message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages", 0, -1)
         messages = [self.get_message(message_id) for message_id in message_ids]
         return [message for message in messages if text in message["text"]]
 
-    def index_search_in_room(self, room_code, word):
+    def search_word_in_room(self, room_code, word):
         """Search for a word in messages of a room"""
         message_ids = self.redis_client.smembers(f"{room_code}:word_index:{word}")
         messages = [self.get_message(message_id) for message_id in message_ids]
         return [message for message in messages]
 
-    def global_index_search(self, user_id, word):
+    def search_word_globally(self, user_id, word):
         """Search for a word in all messages"""
 
         # get all rooms for user
@@ -88,6 +89,13 @@ class App:
         self.redis_client.sadd(f"room:{room_code}:users", user_id)
         self.redis_client.sadd(f"user:{user_id}:rooms", room_code)
 
+    # TODO: check for existing code
+    # (we can generate code and get only name)
+    def create_room(self, user_id, room_name, room_code):
+        """Create a room with user"""
+        self.redis_client.hset(f"room:{room_code}", room_name)
+        self.add_user_to_room(room_code, user_id)
+
 
 def test_search(redis_client):
     app = App(redis_client)
@@ -112,11 +120,3 @@ if __name__ == "__main__":
     # generate_data(redis_client, 10, 2, 5000)
 
     app = App(redis_client)
-    test_search(redis_client)
-    # print(app.get_all_messages_for_room("room1", 1, 10))
-    # app.add_message_to_room("room1", 1, "Nesmysl")
-    # print(app.get_all_messages_for_room("room1", 1, 10))
-
-    # search_in_messages = app.search_in_messages("room1", "nesmysl")
-
-    # print(search_in_messages)
