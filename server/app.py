@@ -1,14 +1,11 @@
 from datetime import datetime
 import redis
 
-from generate_data import generate_data
-
-
 class App:
     def __init__(self, redis_client):
         self.redis_client = redis_client
 
-    def get_all_messages_for_room(self, room_code, page=1, page_size=10):
+    def get_room_messages(self, room_code, page=1, page_size=10):
         """Get all messages for a room"""
         start = (page - 1) * 10
         end = start + page_size - 1
@@ -22,7 +19,7 @@ class App:
         return self.redis_client.hgetall(f"message:{message_id}")
 
     # TODO: get also last message in room
-    def get_all_user_rooms(self, user_id):
+    def get_user_rooms(self, user_id):
         """Get all rooms for a user"""
         return self.redis_client.smembers(f"user:{user_id}:rooms")
 
@@ -50,12 +47,12 @@ class App:
         self.index_message_text(room_code, message_id, text)
         return message
 
-    def basic_search_in_messages(self, room_code, text):
-        """Search for a text in messages of a room
+    def basic_search_in_messages(self, room_code, word):
+        """Search for a word in messages of a room
         Only basic with case sensitivity"""
         message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages", 0, -1)
         messages = [self.get_message(message_id) for message_id in message_ids]
-        return [message for message in messages if text in message["text"]]
+        return [message for message in messages if word in message["text"]]
 
     def search_word_in_room(self, room_code, word):
         """Search for a word in messages of a room"""
@@ -67,12 +64,11 @@ class App:
         """Search for a word in all messages"""
 
         # get all rooms for user
-        rooms = self.get_all_user_rooms(user_id)
+        rooms = self.get_user_rooms(user_id)
 
         # get all messages for all rooms
         message_ids = []
         for room in rooms:
-            print(room)
             message_ids.extend(self.redis_client.smembers(f"{room}:word_index:{word}"))
 
         # get all messages
@@ -93,28 +89,13 @@ class App:
     # (we can generate code and get only name)
     def create_room(self, user_id, room_name, room_code):
         """Create a room with user"""
-        self.redis_client.hset(f"room:{room_code}", room_name)
+        self.redis_client.hset(f"room:{room_code}", "name", room_name)
         self.add_user_to_room(room_code, user_id)
-
-
-def test_search(redis_client):
-    app = App(redis_client)
-    app.add_message_to_room("room1", 1, "Nesmysl to je s vice slovy")
-    app.add_message_to_room("room1", 2, "Some different text")
-    app.add_message_to_room("room1", 3, "Tottally different message")
-    app.add_message_to_room("room2", 1, "Nesmysl to je s vice slovy")
-
-    app.add_user_to_room("room2", 1)
-
-    print(app.get_room_members("room2"))
-
-    print("1:", app.index_search_in_room("room1", "je"))
-    print("2:", app.global_index_search(1, "je"))
 
 
 if __name__ == "__main__":
     redis_client = redis.Redis(
-        host="localhost", port=6379, db=0, charset="utf-8", decode_responses=True
+        host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
     )
     # redis_client.flushall()
     # generate_data(redis_client, 10, 2, 5000)
