@@ -1,9 +1,11 @@
+import argparse
 from datetime import datetime
 import redis
 
 class App:
     def __init__(self, redis_client):
         self.redis_client = redis_client
+        self.pub_sub = self.redis_client.pubsub()
 
     def get_room_messages(self, room_code, page=1, page_size=10):
         """Get all messages for a room"""
@@ -84,6 +86,11 @@ class App:
         """Add a user to a room"""
         self.redis_client.sadd(f"room:{room_code}:users", user_id)
         self.redis_client.sadd(f"user:{user_id}:rooms", room_code)
+    
+    def remove_user_from_room(self, room_code, user_id):
+        """Remove a user from a room"""
+        self.redis_client.srem(f"room:{room_code}:users", user_id)
+        self.redis_client.srem(f"user:{user_id}:rooms", room_code)
 
     # TODO: check for existing code
     # (we can generate code and get only name)
@@ -91,6 +98,21 @@ class App:
         """Create a room with user"""
         self.redis_client.hset(f"room:{room_code}", "name", room_name)
         self.add_user_to_room(room_code, user_id)
+
+    def subscribe_to_room(self, room_code):
+        """Subscribe to a room"""
+        self.pub_sub.subscribe(room_code)
+        for message in self.pub_sub.listen():
+            print(message)
+
+    def unsubscribe_from_room(self, room_code):
+        """Unsubscribe from a room"""
+        self.pub_sub.unsubscribe(room_code)
+
+    def publish_to_room(self, room_code, message):
+        """Publish a message to a room"""
+        self.redis_client.publish(room_code, message)
+        
 
 
 if __name__ == "__main__":
@@ -101,3 +123,15 @@ if __name__ == "__main__":
     # generate_data(redis_client, 10, 2, 5000)
 
     app = App(redis_client)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--sub", help="subscribe to room")
+    parser.add_argument("-p", "--pub", help="publish to room")
+
+    args = parser.parse_args()
+    if args.sub:
+        app.subscribe_to_room(args.sub)
+    elif args.pub:
+        while True:
+            message = input("Enter message: ")
+            app.publish_to_room(args.pub, message)
