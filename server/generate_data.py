@@ -68,5 +68,9 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
             )
             redis_client.hset(f"message:{message['id']}", mapping=message)
 
+            """Index message text for search"""
+            for token in message["text"].split(" "):
+                redis_client.sadd(f"{room_code}:word_index:{token}", message_id)
+
     # Close Redis connection
     redis_client.close()

@@ -82,16 +82,19 @@ class App:
         messages = [self.get_message(message_id) for message_id in message_ids]
         return [message for message in messages]
 
-    def search_word_globally(self, user_id, word):
+    def search_word_globally(self, username, word):
         """Search for a word in all messages"""
 
         # get all rooms for user
-        rooms = self.get_user_rooms(user_id)
+        rooms = self.get_user_rooms(username)
 
         # get all messages for all rooms
         message_ids = []
         for room in rooms:
-            message_ids.extend(self.redis_client.smembers(f"{room}:word_index:{word}"))
+            room_code = room["code"]
+            message_ids.extend(
+                self.redis_client.smembers(f"{room_code}:word_index:{word}")
+            )
 
         # get all messages
         messages = [self.get_message(message_id) for message_id in message_ids]

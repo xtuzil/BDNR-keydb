@@ -16,10 +16,15 @@ export class ChatComponent implements OnInit {
   messageControl = new FormControl('');
   message = '';
 
+  searchWordControl = new FormControl('');
+  searching = false;
+  searchedMessages$!: Observable<Message[]>;
+
   constructor(private service: AppService) {}
 
   ngOnInit(): void {
     this.chatMessages$ = this.service.chatMessages.asObservable();
+    this.searchedMessages$ = this.service.searchedMessages.asObservable();
   }
 
   sendMessage() {
@@ -27,5 +32,18 @@ export class ChatComponent implements OnInit {
     console.log('SENDING MESSAGE: ', this.message);
     this.service.sendMessage(this.room.code, this.message);
     this.messageControl.reset();
+  }
+
+  search() {
+    const searchWord = this.searchWordControl.value ?? '';
+    if (searchWord !== '') {
+      this.service.searchInRoom(this.room.code, searchWord);
+      this.searching = true;
+    }
+  }
+
+  cancelSearch() {
+    this.searching = false;
+    this.searchWordControl.reset();
   }
 }

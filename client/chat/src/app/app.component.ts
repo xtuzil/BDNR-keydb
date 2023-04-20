@@ -15,10 +15,15 @@ export class AppComponent {
   messages: string[] = [];
   selectedRoom!: Room | undefined;
 
+  searchWordControl = new FormControl('');
+  searching = false;
+  searchedMessages$!: Observable<Message[]>;
+
   constructor(private service: AppService) {}
 
   ngOnInit() {
     this.username = localStorage.getItem('Username') ?? '';
+    this.searchedMessages$ = this.service.searchedMessages.asObservable();
   }
 
   setUsername() {
@@ -37,5 +42,18 @@ export class AppComponent {
     this.selectedRoom = room;
     console.log('SELECTED ROOM: ', room);
     this.service.fetchRoomMessages(room.code);
+  }
+
+  search() {
+    const searchWord = this.searchWordControl.value ?? '';
+    if (searchWord !== '') {
+      this.service.search(searchWord);
+      this.searching = true;
+    }
+  }
+
+  cancelSearch() {
+    this.searching = false;
+    this.searchWordControl.reset();
   }
 }

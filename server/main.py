@@ -1,6 +1,7 @@
 import datetime
 import asyncio
 import json
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Response, Request
 from pydantic import BaseModel
 import redis
@@ -40,7 +41,7 @@ class Message(BaseModel):
     text: str
 
 
-@app.post("/rooms/{room_code}/messages/", status_code=204)
+@app.post("/rooms/{room_code}/messages", status_code=204)
 async def publish_message(room_code: str, message: Message):
     """Publish message to a room"""
     api.add_message_to_room(room_code, message.author, message.text)
@@ -57,7 +58,7 @@ class NewRoom(BaseModel):
     name: str
 
 
-@app.post("/rooms/", status_code=200)
+@app.post("/rooms", status_code=200)
 async def create_room(room: NewRoom):
     """Create a room"""
     room_code = api.create_room(room.author, room.name)
@@ -79,9 +80,21 @@ async def register_to_room(room: RegisterRoom):
     return Response(status_code=204)
 
 
-@app.get("/rooms/{room_code}/messages/")
-async def get_room_messages(room_code: str):
+@app.get("/rooms/{room_code}/messages")
+async def get_room_messages(room_code: str, q: Optional[str] = None):
+    if q:
+        print("searching", q)
+        return api.search_word_in_room(room_code, q)
     return api.get_room_messages(room_code)
+
+
+@app.get("/users/{username}/rooms/messages")
+async def get_room_messages(username: str, q: Optional[str] = None):
+    if q:
+        print("searching", q)
+        return api.search_word_globally(username, q)
+    else:
+        return []
 
 
 @app.get("/users/{username}/rooms")

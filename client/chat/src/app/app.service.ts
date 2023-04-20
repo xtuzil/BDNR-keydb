@@ -22,6 +22,7 @@ export class AppService {
   message: Subject<Message> = new Subject<Message>();
   rooms: Subject<Room[]> = new Subject<Room[]>();
   chatMessages: Subject<Message[]> = new Subject<Message[]>();
+  searchedMessages: Subject<Message[]> = new Subject<Message[]>();
 
   constructor(private http: HttpClient) {}
 
@@ -55,6 +56,27 @@ export class AppService {
       .pipe()
       .subscribe((data: any) => {
         this.chatMessages.next(data);
+      });
+  }
+
+  searchInRoom(room_code: string, search_word: string): void {
+    this.http
+      .get(`http://127.0.0.1:8000/rooms/${room_code}/messages?q=${search_word}`)
+      .pipe()
+      .subscribe((data: any) => {
+        this.searchedMessages.next(data);
+      });
+  }
+
+  search(search_word: string): void {
+    const username = localStorage.getItem('Username') ?? '';
+    this.http
+      .get(
+        `http://127.0.0.1:8000/users/${username}/rooms/messages?q=${search_word}`
+      )
+      .pipe()
+      .subscribe((data: any) => {
+        this.searchedMessages.next(data);
       });
   }
 

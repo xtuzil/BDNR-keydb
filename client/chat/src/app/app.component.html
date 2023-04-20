@@ -23,10 +23,25 @@
   <p>
     <b>Hi, {{ username }}!</b>
   </p>
+
+  <!--  User rooms -->
   <div>
     <app-rooms (selectedEvent)="select($event)"></app-rooms>
   </div>
 
+  <!--  Global search -->
+  <input type="text" [formControl]="searchWordControl" />
+  <button (click)="search()">Search globally</button>
+  <button (click)="cancelSearch()">Cancel search</button>
+  <div *ngIf="searching">
+    <h5>Global search results:</h5>
+    <div *ngIf="searchedMessages$ | async as messages">
+      <app-chat-messages [messages]="messages"></app-chat-messages>
+    </div>
+  </div>
+  <hr />
+
+  <!-- selected room chat -->
   <div *ngIf="selectedRoom">
     <app-chat [room]="selectedRoom"></app-chat>
     <div *ngFor="let msg of messages">
