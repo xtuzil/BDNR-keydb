@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<title>chat</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<style>
+  body {
+    max-width: 500px;
+    margin: auto;
+    padding: 1em;
+    background: black;
+    color: #fff;
+    font: 16px/1.6 menlo, monospace;
+  }
+</style>
+
+<div *ngIf="!username">
+  Insert username:
+  <input type="text" [formControl]="usernameControl" />
+  <button (click)="setUsername()">Login</button>
+</div>
+
+<div *ngIf="username">
+  <button (click)="logout()">Logout</button>
+  <p>
+    <b>Hi, {{ username }}!</b>
+  </p>
+  <div>
+    <app-rooms (selectedEvent)="select($event)"></app-rooms>
+  </div>
+
+  <div *ngIf="selectedRoom">
+    <app-chat [roomCode]="selectedRoom"></app-chat>
+    <div *ngFor="let msg of messages">
+      {{ msg }}
+    </div>
+  </div>
+</div>
+
+<script></script>

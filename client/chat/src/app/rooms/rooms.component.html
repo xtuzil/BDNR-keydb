@@ -1,0 +1,9 @@
+<div>
+  <app-room-preview
+    *ngFor="let room of rooms$ | async"
+    [code]="room"
+    (selectedEvent)="select($event)"
+    [selected]="selectedRoom === room"
+  >
+  </app-room-preview>
+</div>

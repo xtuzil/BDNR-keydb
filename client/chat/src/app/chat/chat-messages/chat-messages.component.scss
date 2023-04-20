@@ -1,0 +1,6 @@
+.chat-container {
+  height: 50vh;
+  overflow: auto;
+  display:flex; 
+  flex-direction:column-reverse;
+}

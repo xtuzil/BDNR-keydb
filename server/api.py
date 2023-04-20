@@ -2,11 +2,24 @@ import argparse
 from datetime import datetime
 import redis
 
+from generate_data import generate_data
+
+# TODO:
+# login
+# refactor user to use only username as key
+# add "room" before indexes key
+
+get_datetime_from_timestamp = lambda timestamp: datetime.fromtimestamp(
+    timestamp
+).strftime("%Y-%m-%d %H:%M:%S")
+
+
 class App:
     def __init__(self, redis_client):
         self.redis_client = redis_client
         self.pub_sub = self.redis_client.pubsub()
 
+    # TODO: transform timestamp to datetime
     def get_room_messages(self, room_code, page=1, page_size=10):
         """Get all messages for a room"""
         start = (page - 1) * 10
@@ -18,7 +31,13 @@ class App:
 
     def get_message(self, message_id):
         """Get a message by id"""
-        return self.redis_client.hgetall(f"message:{message_id}")
+        message = self.redis_client.hgetall(f"message:{message_id}")
+        return {
+            "id": message_id,
+            "author": message["author"],
+            "timestamp": get_datetime_from_timestamp(float(message["timestamp"])),
+            "text": message["text"],
+        }
 
     # TODO: get also last message in room
     def get_user_rooms(self, user_id):
@@ -29,12 +48,12 @@ class App:
         """Get all members for a room"""
         return self.redis_client.smembers(f"room:{room_code}:users")
 
-    def add_message_to_room(self, room_code, sender_id, text):
+    def add_message_to_room(self, room_code, author, text):
         """Add a message to a room"""
         message_id = self.redis_client.incr("next_message_id")
         message = {
             "id": message_id,
-            "sender_id": sender_id,
+            "author": author,
             "timestamp": datetime.timestamp(datetime.now()),
             "text": text,
         }
@@ -82,11 +101,13 @@ class App:
         for token in message_text.split(" "):
             self.redis_client.sadd(f"{room_code}:word_index:{token}", message_id)
 
+    # TODO: check for room existence
     def add_user_to_room(self, room_code, user_id):
         """Add a user to a room"""
         self.redis_client.sadd(f"room:{room_code}:users", user_id)
         self.redis_client.sadd(f"user:{user_id}:rooms", room_code)
-    
+
+    # TODO: check for room existence
     def remove_user_from_room(self, room_code, user_id):
         """Remove a user from a room"""
         self.redis_client.srem(f"room:{room_code}:users", user_id)
@@ -112,26 +133,28 @@ class App:
     def publish_to_room(self, room_code, message):
         """Publish a message to a room"""
         self.redis_client.publish(room_code, message)
-        
+
+    def init_data(self):
+        generate_data(self.redis_client, 10, 2, 5000)
 
 
 if __name__ == "__main__":
     redis_client = redis.Redis(
         host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
     )
-    # redis_client.flushall()
-    # generate_data(redis_client, 10, 2, 5000)
+    redis_client.flushall()
+    generate_data(redis_client, 10, 2, 5000)
 
     app = App(redis_client)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--sub", help="subscribe to room")
-    parser.add_argument("-p", "--pub", help="publish to room")
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("-s", "--sub", help="subscribe to room")
+    # parser.add_argument("-p", "--pub", help="publish to room")
 
-    args = parser.parse_args()
-    if args.sub:
-        app.subscribe_to_room(args.sub)
-    elif args.pub:
-        while True:
-            message = input("Enter message: ")
-            app.publish_to_room(args.pub, message)
+    # args = parser.parse_args()
+    # if args.sub:
+    #     app.subscribe_to_room(args.sub)
+    # elif args.pub:
+    #     while True:
+    #         message = input("Enter message: ")
+    #         app.publish_to_room(args.pub, message)

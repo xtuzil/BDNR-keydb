@@ -1,0 +1,11 @@
+<h1>{{ roomCode }}</h1>
+
+<div *ngIf="chatMessages$ | async as messages">
+  <app-chat-messages [messages]="messages"></app-chat-messages>
+</div>
+
+<p>
+  Message:
+  <input id="in" [formControl]="messageControl" />
+  <button (click)="sendMessage()">send</button>
+</p>
