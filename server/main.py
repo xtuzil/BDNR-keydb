@@ -45,11 +45,23 @@ async def publish_message(room_code: str, message: Message):
     """Publish message to a room"""
     api.add_message_to_room(room_code, message.author, message.text)
 
-    now = datetime.datetime.now().replace(microsecond=0).time()
+    now = datetime.datetime.now()
     message_json = json.dumps(
         {"author": message.author, "text": message.text, "time": now.isoformat()}
     )
     r.publish("chat", message_json)
+
+
+class NewRoom(BaseModel):
+    author: str
+    name: str
+
+
+@app.post("/rooms/", status_code=200)
+async def create_room(room: NewRoom):
+    """Create a room"""
+    room_code = api.create_room(room.author, room.name)
+    return {"room_code": room_code}
 
 
 @app.get("/rooms/{room_code}/messages/")

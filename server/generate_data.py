@@ -1,5 +1,6 @@
 from datetime import datetime
 import random
+import uuid
 from faker import Faker
 
 
@@ -31,10 +32,11 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
         redis_client.hset(f"user:{username}", mapping=user)
 
     # Generate rooms
-    room_codes = ["room" + str(i) for i in range(1, num_rooms + 1)]
+    room_names = ["room" + str(i) for i in range(1, num_rooms + 1)]
     rooms = {}
     for i in range(num_rooms):
-        room_code = room_codes[i]
+        room_name = room_names[i]
+        room_code = uuid.uuid4().hex[:6].upper()
         room_users = random.choices(
             list(users.keys()), k=4
         )  # select 4 random users for this room
@@ -42,9 +44,9 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
         rooms[room_code] = room
 
         # Save room to Redis
+        redis_client.hset(f"room:{room_code}", "name", room_name)
         redis_client.sadd(f"room:{room_code}:users", *room_users)
 
-        # TODO is this correct?
         # Add room to each user's list of rooms
         for username in room_users:
             redis_client.sadd(f"user:{username}:rooms", room_code)

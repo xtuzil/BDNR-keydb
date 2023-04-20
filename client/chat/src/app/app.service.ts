@@ -9,13 +9,18 @@ export interface Message {
   id: string;
 }
 
+export interface Room {
+  name: string;
+  code: string;
+  lastMessage: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AppService {
   message: Subject<Message> = new Subject<Message>();
-
-  rooms: Subject<string[]> = new Subject<string[]>();
+  rooms: Subject<Room[]> = new Subject<Room[]>();
   chatMessages: Subject<Message[]> = new Subject<Message[]>();
 
   constructor(private http: HttpClient) {}
@@ -39,6 +44,7 @@ export class AppService {
       .get(`http://127.0.0.1:8000/users/${username}/rooms/`)
       .pipe()
       .subscribe((data: any) => {
+        console.log('Rooms: ', data);
         this.rooms.next(data ?? []);
       });
   }
@@ -48,7 +54,7 @@ export class AppService {
       .get(`http://127.0.0.1:8000/rooms/${room_code}/messages/`)
       .pipe()
       .subscribe((data: any) => {
-        this.chatMessages.next(data ?? []);
+        this.chatMessages.next(data);
       });
   }
 
@@ -61,5 +67,13 @@ export class AppService {
       })
       .pipe()
       .subscribe((data: any) => {});
+  }
+
+  createRoom(room_name: string): Observable<any> {
+    const username = localStorage.getItem('Username') ?? '';
+    return this.http.post(`http://127.0.0.1:8000/rooms/`, {
+      name: room_name,
+      author: username,
+    });
   }
 }

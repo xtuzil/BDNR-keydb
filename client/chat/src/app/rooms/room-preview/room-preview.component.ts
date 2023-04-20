@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Room } from 'src/app/app.service';
 
 @Component({
   selector: 'app-room-preview',
@@ -7,25 +8,21 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 })
 export class RoomPreviewComponent implements OnInit {
   @Input()
-  code: string = '';
-
-  @Input()
-  name: string = '';
+  room!: Room;
 
   @Input()
   selected: boolean = false;
 
-  @Input()
-  lastMessage: string = '';
-
-  @Output() selectedEvent = new EventEmitter<string>();
+  @Output() selectedEvent = new EventEmitter<Room>();
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    console.log('ROOM PREVIEW: ', this.room);
+  }
 
   onSelect(event: any) {
     this.selected = !this.selected;
-    this.selectedEvent.emit(this.code);
+    this.selectedEvent.emit(this.room);
   }
 }

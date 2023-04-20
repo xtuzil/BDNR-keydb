@@ -1,6 +1,6 @@
 <div>
-  <span>{{ code }}</span>
-  <span>{{ lastMessage }}</span>
+  <span>{{ room.name }}</span>
+  <span>{{ room.lastMessage }}</span>
   <span><button (click)="onSelect($event)">select</button></span>
   <span *ngIf="selected">SELECTED</span>
   <hr />

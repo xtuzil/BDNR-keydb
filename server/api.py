@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import redis
+import uuid
 
 from generate_data import generate_data
 
@@ -17,9 +18,8 @@ get_datetime_from_timestamp = lambda timestamp: datetime.fromtimestamp(
 class App:
     def __init__(self, redis_client):
         self.redis_client = redis_client
-        self.pub_sub = self.redis_client.pubsub()
+        # self.pub_sub = self.redis_client.pubsub()
 
-    # TODO: transform timestamp to datetime
     def get_room_messages(self, room_code, page=1, page_size=10):
         """Get all messages for a room"""
         start = (page - 1) * 10
@@ -42,7 +42,8 @@ class App:
     # TODO: get also last message in room
     def get_user_rooms(self, user_id):
         """Get all rooms for a user"""
-        return self.redis_client.smembers(f"user:{user_id}:rooms")
+        room_codes = self.redis_client.smembers(f"user:{user_id}:rooms")
+        return [self.get_room(room_code) for room_code in room_codes]
 
     def get_room_members(self, room_code):
         """Get all members for a room"""
@@ -113,12 +114,21 @@ class App:
         self.redis_client.srem(f"room:{room_code}:users", user_id)
         self.redis_client.srem(f"user:{user_id}:rooms", room_code)
 
-    # TODO: check for existing code
-    # (we can generate code and get only name)
-    def create_room(self, user_id, room_name, room_code):
+    def get_room(self, room_code):
+        """Get a room by code"""
+        room = self.redis_client.hgetall(f"room:{room_code}")
+        return {
+            "code": room_code,
+            "name": room["name"],
+            # "members": self.get_room_members(room_code),
+        }
+
+    def create_room(self, username, room_name) -> str:
         """Create a room with user"""
+        room_code = uuid.uuid4().hex[:6].upper()
         self.redis_client.hset(f"room:{room_code}", "name", room_name)
-        self.add_user_to_room(room_code, user_id)
+        self.add_user_to_room(room_code, username)
+        return room_code
 
     def subscribe_to_room(self, room_code):
         """Subscribe to a room"""

@@ -1,9 +1,11 @@
 <div>
+  <input type="text" [formControl]="newRoomNameControl" />
+  <button (click)="createRoom()">Create new room</button>
   <app-room-preview
     *ngFor="let room of rooms$ | async"
-    [code]="room"
+    [room]="room"
     (selectedEvent)="select($event)"
-    [selected]="selectedRoom === room"
+    [selected]="selectedRoom && selectedRoom.code === room.code"
   >
   </app-room-preview>
 </div>

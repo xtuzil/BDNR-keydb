@@ -1,6 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { AppService } from '../app.service';
+import { AppService, Room } from '../app.service';
 
 @Component({
   selector: 'app-rooms',
@@ -8,11 +9,13 @@ import { AppService } from '../app.service';
   styleUrls: ['./rooms.component.scss'],
 })
 export class RoomsComponent implements OnInit {
-  rooms$!: Observable<string[]>;
+  rooms$!: Observable<Room[]>;
 
-  @Output() selectedEvent = new EventEmitter<string>();
+  @Output() selectedEvent = new EventEmitter<Room>();
 
-  selectedRoom = '';
+  newRoomNameControl = new FormControl('');
+
+  selectedRoom!: Room;
 
   constructor(private service: AppService) {}
 
@@ -24,8 +27,21 @@ export class RoomsComponent implements OnInit {
     }
   }
 
-  select(room_code: string) {
-    this.selectedRoom = room_code;
-    this.selectedEvent.emit(room_code);
+  select(room: Room) {
+    this.selectedRoom = room;
+    this.selectedEvent.emit(room);
+  }
+
+  createRoom() {
+    console.log('CREATE ROOM: ', this.newRoomNameControl.value);
+    if (this.newRoomNameControl.value) {
+      this.service
+        .createRoom(this.newRoomNameControl.value)
+        .subscribe((res) => {
+          this.newRoomNameControl.reset();
+          this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
+          this.select(res.room_code);
+        });
+    }
   }
 }

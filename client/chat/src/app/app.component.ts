@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
-import { AppService, Message } from './app.service';
+import { AppService, Message, Room } from './app.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +13,7 @@ export class AppComponent {
   username = '';
   usernameControl = new FormControl('');
   messages: string[] = [];
-  selectedRoom: string = '';
+  selectedRoom!: Room;
 
   constructor(private service: AppService) {}
 
@@ -32,9 +32,9 @@ export class AppComponent {
     this.username = '';
   }
 
-  select(room_code: string) {
-    this.selectedRoom = room_code;
-    console.log('SELECTED ROOM: ', room_code);
-    this.service.fetchRoomMessages(room_code);
+  select(room: Room) {
+    this.selectedRoom = room;
+    console.log('SELECTED ROOM: ', room);
+    this.service.fetchRoomMessages(room.code);
   }
 }

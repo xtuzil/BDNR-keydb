@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { AppService, Message } from '../app.service';
+import { AppService, Message, Room } from '../app.service';
 
 @Component({
   selector: 'app-chat',
@@ -10,7 +10,7 @@ import { AppService, Message } from '../app.service';
 })
 export class ChatComponent implements OnInit {
   @Input()
-  roomCode: string = '';
+  room!: Room;
 
   chatMessages$!: Observable<Message[]>;
   messageControl = new FormControl('');
@@ -25,7 +25,7 @@ export class ChatComponent implements OnInit {
   sendMessage() {
     this.message = this.messageControl.value ?? '';
     console.log('SENDING MESSAGE: ', this.message);
-    this.service.sendMessage(this.roomCode, this.message);
+    this.service.sendMessage(this.room.code, this.message);
     this.messageControl.reset();
   }
 }
