@@ -1,6 +1,12 @@
 <div>
   <input type="text" [formControl]="newRoomNameControl" />
   <button (click)="createRoom()">Create new room</button>
+
+  <input type="text" [formControl]="roomCodeControl" />
+  <button (click)="registerRoom()">Register room</button>
+
+  <hr />
+  <h3>Your chat rooms:</h3>
   <app-room-preview
     *ngFor="let room of rooms$ | async"
     [room]="room"

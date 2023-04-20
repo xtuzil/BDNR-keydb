@@ -13,7 +13,7 @@ export class AppComponent {
   username = '';
   usernameControl = new FormControl('');
   messages: string[] = [];
-  selectedRoom!: Room;
+  selectedRoom!: Room | undefined;
 
   constructor(private service: AppService) {}
 
@@ -29,6 +29,7 @@ export class AppComponent {
 
   logout() {
     localStorage.removeItem('Username');
+    this.selectedRoom = undefined;
     this.username = '';
   }
 

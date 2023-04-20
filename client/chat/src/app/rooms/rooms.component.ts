@@ -14,6 +14,7 @@ export class RoomsComponent implements OnInit {
   @Output() selectedEvent = new EventEmitter<Room>();
 
   newRoomNameControl = new FormControl('');
+  roomCodeControl = new FormControl('');
 
   selectedRoom!: Room;
 
@@ -42,6 +43,22 @@ export class RoomsComponent implements OnInit {
         this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
         this.select({ name: newRoomName, code: newRoomCode });
       });
+    }
+  }
+
+  registerRoom() {
+    console.log('REGISTER ROOM: ', this.roomCodeControl.value);
+    if (this.roomCodeControl.value) {
+      const roomCode = this.roomCodeControl.value;
+      this.service.registerRoom(roomCode).subscribe(
+        (_) => {
+          this.roomCodeControl.reset();
+          this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
+        },
+        (err) => {
+          alert(`Error: ${err.error.detail}`);
+        }
+      );
     }
   }
 }

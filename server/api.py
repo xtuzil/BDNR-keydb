@@ -102,11 +102,17 @@ class App:
         for token in message_text.split(" "):
             self.redis_client.sadd(f"{room_code}:word_index:{token}", message_id)
 
-    # TODO: check for room existence
-    def add_user_to_room(self, room_code, user_id):
+    def add_user_to_room(self, room_code, username) -> tuple[bool, str]:
         """Add a user to a room"""
-        self.redis_client.sadd(f"room:{room_code}:users", user_id)
-        self.redis_client.sadd(f"user:{user_id}:rooms", room_code)
+
+        # check for room existence
+        if not self.redis_client.exists(f"room:{room_code}"):
+            return False, f"Room with code {room_code} does not exist"
+
+        self.redis_client.sadd(f"room:{room_code}:users", username)
+        self.redis_client.sadd(f"user:{username}:rooms", room_code)
+
+        return True, ""
 
     # TODO: check for room existence
     def remove_user_from_room(self, room_code, user_id):

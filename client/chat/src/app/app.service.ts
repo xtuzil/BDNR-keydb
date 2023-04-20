@@ -76,4 +76,12 @@ export class AppService {
       author: username,
     });
   }
+
+  registerRoom(room_code: string): Observable<any> {
+    const username = localStorage.getItem('Username') ?? '';
+    return this.http.post(`http://127.0.0.1:8000/rooms/register`, {
+      room_code: room_code,
+      user: username,
+    });
+  }
 }

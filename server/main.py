@@ -1,7 +1,7 @@
 import datetime
 import asyncio
 import json
-from fastapi import FastAPI, Response, Request
+from fastapi import FastAPI, HTTPException, Response, Request
 from pydantic import BaseModel
 import redis
 from sse_starlette.sse import EventSourceResponse
@@ -62,6 +62,21 @@ async def create_room(room: NewRoom):
     """Create a room"""
     room_code = api.create_room(room.author, room.name)
     return {"room_code": room_code}
+
+
+class RegisterRoom(BaseModel):
+    user: str
+    room_code: str
+
+
+@app.post("/rooms/register")
+async def register_to_room(room: RegisterRoom):
+    """register to a room"""
+    status, message = api.add_user_to_room(room.room_code, room.user)
+    if not status:
+        raise HTTPException(status_code=404, detail=message)
+
+    return Response(status_code=204)
 
 
 @app.get("/rooms/{room_code}/messages/")
