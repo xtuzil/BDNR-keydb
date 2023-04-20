@@ -35,13 +35,13 @@ export class RoomsComponent implements OnInit {
   createRoom() {
     console.log('CREATE ROOM: ', this.newRoomNameControl.value);
     if (this.newRoomNameControl.value) {
-      this.service
-        .createRoom(this.newRoomNameControl.value)
-        .subscribe((res) => {
-          this.newRoomNameControl.reset();
-          this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
-          this.select(res.room_code);
-        });
+      const newRoomName = this.newRoomNameControl.value;
+      this.service.createRoom(newRoomName).subscribe((res) => {
+        const newRoomCode = res.room_code as string;
+        this.newRoomNameControl.reset();
+        this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
+        this.select({ name: newRoomName, code: newRoomCode });
+      });
     }
   }
 }

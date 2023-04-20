@@ -1,6 +1,7 @@
 <h1>{{ room.name }} (#{{ room.code }})</h1>
 
 <div *ngIf="chatMessages$ | async as messages">
+  <div *ngIf="messages != []">No messages? Write the first one!</div>
   <app-chat-messages [messages]="messages"></app-chat-messages>
 </div>
 

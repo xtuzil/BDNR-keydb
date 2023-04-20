@@ -12,7 +12,7 @@ export interface Message {
 export interface Room {
   name: string;
   code: string;
-  lastMessage: string;
+  lastMessage?: string;
 }
 
 @Injectable({
