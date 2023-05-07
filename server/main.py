@@ -84,15 +84,15 @@ async def register_to_room(room: RegisterRoom):
 async def get_room_messages(room_code: str, q: Optional[str] = None):
     if q:
         print("searching", q)
-        return api.search_word_in_room(room_code, q)
+        return api.search_prefix_in_room(room_code, q.lower())
     return api.get_room_messages(room_code)
 
 
 @app.get("/users/{username}/rooms/messages")
-async def get_room_messages(username: str, q: Optional[str] = None):
+async def search_globally(username: str, q: Optional[str] = None):
     if q:
         print("searching", q)
-        return api.search_word_globally(username, q)
+        return api.search_word_globally(username, q.lower())
     else:
         return []
 
@@ -100,6 +100,12 @@ async def get_room_messages(username: str, q: Optional[str] = None):
 @app.get("/users/{username}/rooms")
 async def get_user_rooms(username: str):
     return api.get_user_rooms(username)
+
+
+@app.post("/init")
+async def init_data():
+    api.init_data()
+    return {"message": "ok"}
 
 
 @app.get("/stream")

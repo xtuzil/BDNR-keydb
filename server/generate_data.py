@@ -2,6 +2,7 @@ from datetime import datetime
 import random
 import uuid
 from faker import Faker
+import re
 
 
 def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room=100):
@@ -58,8 +59,8 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
             message_id = redis_client.incr("next_message_id")
             message = {
                 "author": author,
-                "text": fake.text(),
-                "timestamp": datetime.timestamp(datetime.now()),
+                "text": fake.text(max_nb_chars=50),
+                "timestamp": datetime.timestamp(fake.date_time_between()),
                 "id": message_id,
             }
 
@@ -69,8 +70,10 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
             redis_client.hset(f"message:{message['id']}", mapping=message)
 
             """Index message text for search"""
-            for token in message["text"].split(" "):
-                redis_client.sadd(f"{room_code}:word_index:{token}", message_id)
+            for token in re.findall(r"[\w']+", message["text"]):
+                redis_client.sadd(
+                    f"room:{room_code}:word_index:{token.lower()}", message_id
+                )
 
     # Close Redis connection
     redis_client.close()

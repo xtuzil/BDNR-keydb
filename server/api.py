@@ -2,13 +2,9 @@ import argparse
 from datetime import datetime
 import redis
 import uuid
+import re
 
 from generate_data import generate_data
-
-# TODO:
-# login
-# refactor user to use only username as key
-# add "room" before indexes key
 
 get_datetime_from_timestamp = lambda timestamp: datetime.fromtimestamp(
     timestamp
@@ -22,11 +18,9 @@ class App:
 
     def get_room_messages(self, room_code, page=1, page_size=10):
         """Get all messages for a room"""
-        start = (page - 1) * 10
-        end = start + page_size - 1
-        message_ids = self.redis_client.zrevrange(
-            f"room:{room_code}:messages", start, end
-        )
+        # start = (page - 1) * 10
+        # end = start + page_size - 1
+        message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages")
         return [self.get_message(message_id) for message_id in message_ids]
 
     def get_message(self, message_id):
@@ -69,18 +63,32 @@ class App:
         self.index_message_text(room_code, message_id, text)
         return message
 
-    def basic_search_in_messages(self, room_code, word):
-        """Search for a word in messages of a room
-        Only basic with case sensitivity"""
-        message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages", 0, -1)
-        messages = [self.get_message(message_id) for message_id in message_ids]
-        return [message for message in messages if word in message["text"]]
+    # def basic_search_in_messages(self, room_code, word):
+    #     """Search for a word in messages of a room
+    #     Only basic with case sensitivity"""
+    #     message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages", 0, -1)
+    #     messages = [self.get_message(message_id) for message_id in message_ids]
+    #     return [message for message in messages if word in message["text"]]
 
     def search_word_in_room(self, room_code, word):
         """Search for a word in messages of a room"""
-        message_ids = self.redis_client.smembers(f"{room_code}:word_index:{word}")
+        message_ids = self.redis_client.smembers(f"room:{room_code}:word_index:{word}")
         messages = [self.get_message(message_id) for message_id in message_ids]
         return [message for message in messages]
+
+    def search_prefix_in_room(self, room_code, word):
+        """Search for a word in messages of a room"""
+        keys = self.redis_client.keys(f"room:{room_code}:word_index:{word}*")
+        message_ids = []
+        for key in keys:
+            message_ids.extend(self.redis_client.smembers(key))
+        messages = [self.get_message(message_id) for message_id in message_ids]
+
+        return sorted(
+            messages,
+            key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S"),
+            reverse=True,
+        )
 
     def search_word_globally(self, username, word):
         """Search for a word in all messages"""
@@ -93,17 +101,23 @@ class App:
         for room in rooms:
             room_code = room["code"]
             message_ids.extend(
-                self.redis_client.smembers(f"{room_code}:word_index:{word}")
+                self.redis_client.smembers(f"room:{room_code}:word_index:{word}")
             )
 
         # get all messages
         messages = [self.get_message(message_id) for message_id in message_ids]
-        return [message for message in messages]
+        return sorted(
+            messages,
+            key=lambda x: datetime.strptime(x["timestamp"], "%Y-%m-%d %H:%M:%S"),
+            reverse=True,
+        )
 
     def index_message_text(self, room_code, message_id, message_text):
         """Index message text for search"""
-        for token in message_text.split(" "):
-            self.redis_client.sadd(f"{room_code}:word_index:{token}", message_id)
+        for token in re.findall(r"[\w']+", message_text):
+            self.redis_client.sadd(
+                f"room:{room_code}:word_index:{token.lower()}", message_id
+            )
 
     def add_user_to_room(self, room_code, username) -> tuple[bool, str]:
         """Add a user to a room"""
@@ -154,7 +168,11 @@ class App:
         self.redis_client.publish(room_code, message)
 
     def init_data(self):
-        generate_data(self.redis_client, 10, 2, 5000)
+        generate_data(self.redis_client, 6, 2, 1000)
+
+    def get_all_user_keys(self):
+        """Get all user keys"""
+        return self.redis_client.keys("user:*")
 
 
 if __name__ == "__main__":
@@ -162,9 +180,12 @@ if __name__ == "__main__":
         host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
     )
     redis_client.flushall()
-    generate_data(redis_client, 10, 2, 5000)
 
     app = App(redis_client)
+    app.init_data()
+
+    # res = app.search_prefix_in_room("D7F0B7", "mess")
+    # print(res)
 
     # parser = argparse.ArgumentParser()
     # parser.add_argument("-s", "--sub", help="subscribe to room")
