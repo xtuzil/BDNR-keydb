@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AppService, Message } from 'src/app/app.service';
 
 @Component({
@@ -10,14 +11,31 @@ export class ChatMessagesComponent implements OnInit {
   @Input()
   messages: Message[] = [];
 
+  @Input()
+  roomCode: string = '';
+
+  protected messageStreamSub: Subscription | undefined;
+
   constructor(private service: AppService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.service.message.subscribe((msg) => {
-      this.messages = [msg, ...this.messages];
-      this.cdr.detectChanges();
-      console.log('NEW MESSAGES: ', this.messages);
+    if (this.roomCode) {
+      this.subscribeStream();
+    }
+  }
+
+  protected subscribeStream(): void {
+    this.messageStreamSub = this.service.message.subscribe((msg) => {
+      if (msg.room_code === this.roomCode) {
+        this.messages = [msg, ...this.messages];
+        this.cdr.detectChanges();
+        console.log('NEW MESSAGES: ', this.messages);
+      }
     });
     this.service.getMessagesStream();
+  }
+
+  ngOnDestroy(): void {
+    this.messageStreamSub?.unsubscribe();
   }
 }

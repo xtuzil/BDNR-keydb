@@ -16,11 +16,11 @@ class App:
         self.redis_client = redis_client
         # self.pub_sub = self.redis_client.pubsub()
 
-    def get_room_messages(self, room_code, page=1, page_size=10):
+    def get_room_messages(self, room_code):
         """Get all messages for a room"""
         # start = (page - 1) * 10
         # end = start + page_size - 1
-        message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages")
+        message_ids = self.redis_client.zrevrange(f"room:{room_code}:messages", 0, -1)
         return [self.get_message(message_id) for message_id in message_ids]
 
     def get_message(self, message_id):

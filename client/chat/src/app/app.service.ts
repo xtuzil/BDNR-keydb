@@ -7,6 +7,7 @@ export interface Message {
   timestamp: string;
   text: string;
   id: string;
+  room_code?: string;
 }
 
 export interface Room {
@@ -36,6 +37,7 @@ export class AppService {
         timestamp: message.time,
         text: message.text,
         id: 'TODO',
+        room_code: message.room_code,
       });
     };
   }
@@ -99,7 +101,7 @@ export class AppService {
     });
   }
 
-  registerRoom(room_code: string): Observable<any> {
+  joinRoom(room_code: string): Observable<any> {
     const username = localStorage.getItem('Username') ?? '';
     return this.http.post(`http://127.0.0.1:8000/rooms/register`, {
       room_code: room_code,

@@ -30,16 +30,19 @@
   </div>
 
   <!--  Global search -->
-  <input type="text" [formControl]="searchWordControl" />
-  <button (click)="search()">Search globally</button>
-  <button (click)="cancelSearch()">Cancel search</button>
-  <div *ngIf="searching">
-    <h5>Global search results:</h5>
-    <div *ngIf="searchedMessages$ | async as messages">
-      <app-chat-messages [messages]="messages"></app-chat-messages>
+  <hr />
+  <h3>Global search</h3>
+  <div class="global-search">
+    <input type="text" [formControl]="searchWordControl" />
+    <button (click)="search()">Search globally</button>
+    <button (click)="cancelSearch()">Cancel</button>
+    <div *ngIf="searching">
+      <h4>Results:</h4>
+      <div *ngIf="searchedMessages$ | async as messages">
+        <app-chat-messages [messages]="messages"></app-chat-messages>
+      </div>
     </div>
   </div>
-  <hr />
 
   <!-- selected room chat -->
   <div *ngIf="selectedRoom">

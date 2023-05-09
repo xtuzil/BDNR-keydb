@@ -1,7 +1,8 @@
-<div>
+<div class="rooms">
   <span>{{ room.name }}</span>
   <span>{{ room.lastMessage }}</span>
-  <span><button (click)="onSelect($event)">select</button></span>
-  <span *ngIf="selected">SELECTED</span>
-  <hr />
+  <span class="selected" *ngIf="selected; else btnSelect">SELECTED</span>
+  <ng-template #btnSelect>
+    <button (click)="onSelect($event)">select</button>
+  </ng-template>
 </div>

@@ -46,11 +46,11 @@ export class RoomsComponent implements OnInit {
     }
   }
 
-  registerRoom() {
+  joinRoom() {
     console.log('REGISTER ROOM: ', this.roomCodeControl.value);
     if (this.roomCodeControl.value) {
       const roomCode = this.roomCodeControl.value;
-      this.service.registerRoom(roomCode).subscribe(
+      this.service.joinRoom(roomCode).subscribe(
         (_) => {
           this.roomCodeControl.reset();
           this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');

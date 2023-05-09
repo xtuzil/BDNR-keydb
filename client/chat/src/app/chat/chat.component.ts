@@ -45,5 +45,6 @@ export class ChatComponent implements OnInit {
   cancelSearch() {
     this.searching = false;
     this.searchWordControl.reset();
+    this.service.fetchRoomMessages(this.room.code);
   }
 }

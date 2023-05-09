@@ -48,7 +48,7 @@ async def publish_message(room_code: str, message: Message):
 
     now = datetime.datetime.now()
     message_json = json.dumps(
-        {"author": message.author, "text": message.text, "time": now.isoformat()}
+        {"author": message.author, "text": message.text, "time": now.isoformat(), "room_code": room_code}
     )
     r.publish("chat", message_json)
 
@@ -65,13 +65,13 @@ async def create_room(room: NewRoom):
     return {"room_code": room_code}
 
 
-class RegisterRoom(BaseModel):
+class JoinRoom(BaseModel):
     user: str
     room_code: str
 
 
 @app.post("/rooms/register")
-async def register_to_room(room: RegisterRoom):
+async def register_to_room(room: JoinRoom):
     """register to a room"""
     status, message = api.add_user_to_room(room.room_code, room.user)
     if not status:

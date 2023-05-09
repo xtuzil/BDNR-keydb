@@ -1,9 +1,13 @@
 <div>
-  <input type="text" [formControl]="newRoomNameControl" />
-  <button (click)="createRoom()">Create new room</button>
+  <div class="input-area">
+    <input type="text" [formControl]="newRoomNameControl" />
+    <button (click)="createRoom()">Create new room</button>
+  </div>
 
-  <input type="text" [formControl]="roomCodeControl" />
-  <button (click)="registerRoom()">Register room</button>
+  <div class="input-area">
+    <input type="text" [formControl]="roomCodeControl" />
+    <button (click)="joinRoom()">Join room</button>
+  </div>
 
   <hr />
   <h3>Your chat rooms:</h3>
