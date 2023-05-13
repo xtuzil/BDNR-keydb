@@ -1,8 +1,7 @@
 import datetime
-import asyncio
 import json
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Response, Request
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 import keydb
 from sse_starlette.sse import EventSourceResponse
@@ -11,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api import App
 
+HOST = "keydb"
 
 app = FastAPI()
 
@@ -24,9 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-r = keydb.KeyDB(
-    host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
-)
+
+r = keydb.KeyDB(host=HOST, port=6379, db=0, encoding="utf-8", decode_responses=True)
 
 api = App(r)
 
@@ -48,7 +47,12 @@ async def publish_message(room_code: str, message: Message):
 
     now = datetime.datetime.now()
     message_json = json.dumps(
-        {"author": message.author, "text": message.text, "time": now.isoformat(), "room_code": room_code}
+        {
+            "author": message.author,
+            "text": message.text,
+            "time": now.isoformat(),
+            "room_code": room_code,
+        }
     )
     r.publish("chat", message_json)
 
@@ -76,6 +80,21 @@ async def register_to_room(room: JoinRoom):
     status, message = api.add_user_to_room(room.room_code, room.user)
     if not status:
         raise HTTPException(status_code=404, detail=message)
+
+    return Response(status_code=204)
+
+
+class LeaveRoom(BaseModel):
+    user: str
+
+
+@app.post("/rooms/{room_code}/leave")
+async def leave_from_room(room_code: str, msg: LeaveRoom):
+    """register to a room"""
+    try:
+        api.remove_user_from_room(room_code, msg.user)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     return Response(status_code=204)
 

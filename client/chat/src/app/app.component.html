@@ -46,7 +46,7 @@
 
   <!-- selected room chat -->
   <div *ngIf="selectedRoom">
-    <app-chat [room]="selectedRoom"></app-chat>
+    <app-chat [room]="selectedRoom" (leaveEvent)="leave()"></app-chat>
     <div *ngFor="let msg of messages">
       {{ msg }}
     </div>

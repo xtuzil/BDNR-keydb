@@ -108,4 +108,10 @@ export class AppService {
       user: username,
     });
   }
+  leaveRoom(room_code: string): Observable<any> {
+    const username = localStorage.getItem('Username') ?? '';
+    return this.http.post(`http://127.0.0.1:8000/rooms/${room_code}/leave`, {
+      user: username,
+    });
+  }
 }

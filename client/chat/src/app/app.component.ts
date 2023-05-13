@@ -56,4 +56,9 @@ export class AppComponent {
     this.searching = false;
     this.searchWordControl.reset();
   }
+
+  leave() {
+    console.log('LEAVING ROOM: ', this.selectedRoom?.code);
+    this.selectedRoom = undefined;
+  }
 }

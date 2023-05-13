@@ -1,4 +1,3 @@
-import argparse
 from datetime import datetime
 import keydb
 import uuid
@@ -176,6 +175,7 @@ class App:
         self.keydb_client.publish(room_code, message)
 
     def init_data(self):
+        self.keydb_client.flushall()
         generate_data(self.keydb_client, 6, 2, 1000)
 
     def get_all_user_keys(self):
@@ -183,26 +183,26 @@ class App:
         return self.keydb_client.keys("user:*")
 
 
-if __name__ == "__main__":
-    keydb_client = keydb.KeyDB(
-        host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
-    )
-    keydb_client.flushall()
+# if __name__ == "__main__":
+#     keydb_client = keydb.KeyDB(
+#         host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
+#     )
+#     keydb_client.flushall()
 
-    app = App(keydb_client)
-    app.init_data()
+#     app = App(keydb_client)
+#     app.init_data()
 
-    # res = app.search_prefix_in_room("D7F0B7", "mess")
-    # print(res)
+# res = app.search_prefix_in_room("D7F0B7", "mess")
+# print(res)
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-s", "--sub", help="subscribe to room")
-    # parser.add_argument("-p", "--pub", help="publish to room")
+# parser = argparse.ArgumentParser()
+# parser.add_argument("-s", "--sub", help="subscribe to room")
+# parser.add_argument("-p", "--pub", help="publish to room")
 
-    # args = parser.parse_args()
-    # if args.sub:
-    #     app.subscribe_to_room(args.sub)
-    # elif args.pub:
-    #     while True:
-    #         message = input("Enter message: ")
-    #         app.publish_to_room(args.pub, message)
+# args = parser.parse_args()
+# if args.sub:
+#     app.subscribe_to_room(args.sub)
+# elif args.pub:
+#     while True:
+#         message = input("Enter message: ")
+#         app.publish_to_room(args.pub, message)

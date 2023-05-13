@@ -1,4 +1,11 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { AppService, Message, Room } from '../app.service';
@@ -11,6 +18,8 @@ import { AppService, Message, Room } from '../app.service';
 export class ChatComponent implements OnInit {
   @Input()
   room!: Room;
+
+  @Output() leaveEvent = new EventEmitter<null>();
 
   chatMessages$!: Observable<Message[]>;
   messageControl = new FormControl('');
@@ -46,5 +55,20 @@ export class ChatComponent implements OnInit {
     this.searching = false;
     this.searchWordControl.reset();
     this.service.fetchRoomMessages(this.room.code);
+  }
+
+  leaveRoom() {
+    if (this.room.code) {
+      this.service.leaveRoom(this.room.code).subscribe(
+        (_) => {
+          // this.roomCodeControl.reset();
+          this.leaveEvent.emit();
+          this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
+        },
+        (err) => {
+          alert(`Error: ${err.error.detail}`);
+        }
+      );
+    }
   }
 }
