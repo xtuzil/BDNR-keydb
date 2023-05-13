@@ -11,11 +11,12 @@
 
   <hr />
   <h3>Your chat rooms:</h3>
-  <app-room-preview
-    *ngFor="let room of rooms$ | async"
-    [room]="room"
-    (selectedEvent)="select($event)"
-    [selected]="selectedRoom && selectedRoom.code === room.code"
-  >
-  </app-room-preview>
+  <div *ngIf="show">
+    <app-room-preview
+      *ngFor="let room of rooms"
+      [room]="room"
+      (selectedEvent)="select($event)"
+      [selected]="selectedRoom && selectedRoom.code === room.code"
+    ></app-room-preview>
+  </div>
 </div>

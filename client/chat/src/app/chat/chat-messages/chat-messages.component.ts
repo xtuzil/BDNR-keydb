@@ -32,7 +32,6 @@ export class ChatMessagesComponent implements OnInit {
         console.log('NEW MESSAGES: ', this.messages);
       }
     });
-    this.service.getMessagesStream();
   }
 
   ngOnDestroy(): void {

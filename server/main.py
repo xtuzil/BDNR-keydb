@@ -4,7 +4,7 @@ import json
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Response, Request
 from pydantic import BaseModel
-import redis
+import keydb
 from sse_starlette.sse import EventSourceResponse
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-r = redis.Redis(
+r = keydb.KeyDB(
     host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
 )
 

@@ -1,6 +1,6 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AppService, Room } from '../app.service';
 
 @Component({
@@ -9,7 +9,7 @@ import { AppService, Room } from '../app.service';
   styleUrls: ['./rooms.component.scss'],
 })
 export class RoomsComponent implements OnInit {
-  rooms$!: Observable<Room[]>;
+  rooms: Room[] = [];
 
   @Output() selectedEvent = new EventEmitter<Room>();
 
@@ -18,14 +18,57 @@ export class RoomsComponent implements OnInit {
 
   selectedRoom!: Room;
 
-  constructor(private service: AppService) {}
+  show = true;
+
+  protected messageStreamSub: Subscription | undefined;
+  protected roomsSub: Subscription | undefined;
+
+  constructor(private service: AppService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.rooms$ = this.service.rooms.asObservable();
+    this.roomsSub = this.service.rooms.subscribe((rooms) => {
+      this.rooms = this.sortRoomsByLastMessage(rooms);
+    });
+    this.subscribeStream();
+
     const username = localStorage.getItem('Username') ?? '';
     if (username) {
       this.service.fetchUserRooms(username);
     }
+  }
+
+  protected sortRoomsByLastMessage(rooms: Room[]): Room[] {
+    return rooms.sort((a, b) => {
+      if (a.last_message && b.last_message) {
+        return a.last_message.timestamp > b.last_message.timestamp ? -1 : 1;
+      } else if (a.last_message) {
+        return -1;
+      } else if (b.last_message) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  protected subscribeStream(): void {
+    this.messageStreamSub = this.service.message.subscribe((msg) => {
+      for (let room of this.rooms) {
+        if (msg.room_code === room.code) {
+          room.last_message = msg;
+          break;
+        }
+      }
+      this.rooms = this.sortRoomsByLastMessage(this.rooms);
+      this.cdr.detectChanges();
+      this.reload();
+    });
+    this.service.getMessagesStream();
+  }
+
+  reload() {
+    this.show = false;
+    setTimeout(() => this.show = true);
   }
 
   select(room: Room) {
@@ -60,5 +103,10 @@ export class RoomsComponent implements OnInit {
         }
       );
     }
+  }
+
+  ngOnDestroy(): void {
+    this.messageStreamSub?.unsubscribe();
+    this.roomsSub?.unsubscribe();
   }
 }

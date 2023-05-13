@@ -5,8 +5,8 @@ from faker import Faker
 import re
 
 
-def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room=100):
-    """Generate data for chat app - uses redis to store data
+def generate_data(keydb_client, num_users=10, num_rooms=2, num_messages_per_room=100):
+    """Generate data for chat app - uses keydb to store data
     generate num_users users with faker
     generate num_rooms rooms with faker
     generate num_messages_per_room messages with faker
@@ -29,8 +29,8 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
         }
         users[username] = user
 
-        # Save user to Redis
-        redis_client.hset(f"user:{username}", mapping=user)
+        # Save user to KeyDB
+        keydb_client.hset(f"user:{username}", mapping=user)
 
     # Generate rooms
     room_names = ["room" + str(i) for i in range(1, num_rooms + 1)]
@@ -44,19 +44,19 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
         room = {"code": room_code, "users": room_users}
         rooms[room_code] = room
 
-        # Save room to Redis
-        redis_client.hset(f"room:{room_code}", "name", room_name)
-        redis_client.sadd(f"room:{room_code}:users", *room_users)
+        # Save room to KeyDB
+        keydb_client.hset(f"room:{room_code}", "name", room_name)
+        keydb_client.sadd(f"room:{room_code}:users", *room_users)
 
         # Add room to each user's list of rooms
         for username in room_users:
-            redis_client.sadd(f"user:{username}:rooms", room_code)
+            keydb_client.sadd(f"user:{username}:rooms", room_code)
 
     # Generate messages for each room
     for room_code, room in rooms.items():
         for i in range(num_messages_per_room):
             author = random.choice(room["users"])
-            message_id = redis_client.incr("next_message_id")
+            message_id = keydb_client.incr("next_message_id")
             message = {
                 "author": author,
                 "text": fake.text(max_nb_chars=50),
@@ -64,16 +64,16 @@ def generate_data(redis_client, num_users=10, num_rooms=2, num_messages_per_room
                 "id": message_id,
             }
 
-            redis_client.zadd(
+            keydb_client.zadd(
                 f"room:{room_code}:messages", {message_id: message["timestamp"]}
             )
-            redis_client.hset(f"message:{message['id']}", mapping=message)
+            keydb_client.hset(f"message:{message['id']}", mapping=message)
 
             """Index message text for search"""
             for token in re.findall(r"[\w']+", message["text"]):
-                redis_client.sadd(
+                keydb_client.sadd(
                     f"room:{room_code}:word_index:{token.lower()}", message_id
                 )
 
-    # Close Redis connection
-    redis_client.close()
+    # Close KeyDB connection
+    keydb_client.close()
