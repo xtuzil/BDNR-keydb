@@ -1,11 +1,16 @@
 # BDNR-keydb
 
-```
-docker run -it -p 6379:6379 --name kdb -d eqalpha/keydb keydb-server /etc/keydb/keydb.conf
-```
+To run fastapi server with keydb:
 
 ```
-python -m uvicorn main:app --reload
+cd server
+docker compose build && docker compose up
 ```
 
-search na prefix ... např. news
+To run client
+
+```
+cd client/chat
+npm install
+ng serve
+```

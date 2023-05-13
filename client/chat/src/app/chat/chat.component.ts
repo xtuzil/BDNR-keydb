@@ -38,9 +38,11 @@ export class ChatComponent implements OnInit {
 
   sendMessage() {
     this.message = this.messageControl.value ?? '';
-    console.log('SENDING MESSAGE: ', this.message);
-    this.service.sendMessage(this.room.code, this.message);
-    this.messageControl.reset();
+    if (this.message !== '') {
+      console.log('SENDING MESSAGE: ', this.message);
+      this.service.sendMessage(this.room.code, this.message);
+      this.messageControl.reset();
+    }
   }
 
   search() {
@@ -61,7 +63,6 @@ export class ChatComponent implements OnInit {
     if (this.room.code) {
       this.service.leaveRoom(this.room.code).subscribe(
         (_) => {
-          // this.roomCodeControl.reset();
           this.leaveEvent.emit();
           this.service.fetchUserRooms(localStorage.getItem('Username') ?? '');
         },

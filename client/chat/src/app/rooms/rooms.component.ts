@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { AppService, Room } from '../app.service';
@@ -23,9 +29,7 @@ export class RoomsComponent implements OnInit {
   protected messageStreamSub: Subscription | undefined;
   protected roomsSub: Subscription | undefined;
 
-  constructor(private service: AppService, private cdr: ChangeDetectorRef) {}
-
-  ngOnInit(): void {
+  constructor(private service: AppService, private cdr: ChangeDetectorRef) {
     this.roomsSub = this.service.rooms.subscribe((rooms) => {
       this.rooms = this.sortRoomsByLastMessage(rooms);
     });
@@ -36,6 +40,8 @@ export class RoomsComponent implements OnInit {
       this.service.fetchUserRooms(username);
     }
   }
+
+  ngOnInit(): void {}
 
   protected sortRoomsByLastMessage(rooms: Room[]): Room[] {
     return rooms.sort((a, b) => {
@@ -61,14 +67,8 @@ export class RoomsComponent implements OnInit {
       }
       this.rooms = this.sortRoomsByLastMessage(this.rooms);
       this.cdr.detectChanges();
-      this.reload();
     });
     this.service.getMessagesStream();
-  }
-
-  reload() {
-    this.show = false;
-    setTimeout(() => this.show = true);
   }
 
   select(room: Room) {
