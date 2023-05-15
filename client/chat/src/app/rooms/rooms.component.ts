@@ -68,7 +68,6 @@ export class RoomsComponent implements OnInit {
       this.rooms = this.sortRoomsByLastMessage(this.rooms);
       this.cdr.detectChanges();
     });
-    this.service.getMessagesStream();
   }
 
   select(room: Room) {
