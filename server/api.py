@@ -176,7 +176,7 @@ class App:
 
     def init_data(self):
         self.keydb_client.flushall()
-        generate_data(self.keydb_client, 6, 2, 1000)
+        return generate_data(self.keydb_client, 6, 2, 1000)
 
     def get_all_user_keys(self):
         """Get all user keys"""
