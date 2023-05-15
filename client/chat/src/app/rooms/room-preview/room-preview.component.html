@@ -1,0 +1,10 @@
+<div class="rooms">
+    <span>{{ room.name }}</span>
+    <span class="selected" *ngIf="selected; else btnSelect">SELECTED</span>
+    <ng-template #btnSelect>
+      <button (click)="onSelect($event)">select</button>
+      <div *ngIf="room.last_message" class="second-line">
+        <span>{{ room.last_message.timestamp | date:'short' }} {{ room.last_message.author }}: {{ room.last_message.text }}</span>
+      </div>
+    </ng-template>
+</div>

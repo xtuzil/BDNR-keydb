@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<title>chat</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<style>
+  body {
+    max-width: 500px;
+    margin: auto;
+    padding: 1em;
+    background: black;
+    color: #fff;
+    font: 16px/1.6 menlo, monospace;
+  }
+</style>
+
+<div *ngIf="!username">
+  Insert username:
+  <input type="text" [formControl]="usernameControl" />
+  <button (click)="setUsername()">Login</button>
+</div>
+
+<div *ngIf="username">
+  <button (click)="logout()">Logout</button>
+  <p>
+    <b>Hi, {{ username }}!</b>
+  </p>
+
+  <!--  User rooms -->
+  <div>
+    <app-rooms (selectedEvent)="select($event)"></app-rooms>
+  </div>
+
+  <!--  Global search -->
+  <hr />
+  <h3>Global search</h3>
+  <div class="global-search">
+    <input type="text" [formControl]="searchWordControl" />
+    <button (click)="search()">Search globally</button>
+    <button (click)="cancelSearch()">Cancel</button>
+    <div *ngIf="searching">
+      <h4>Results:</h4>
+      <div *ngIf="searchedMessages$ | async as messages">
+        <app-chat-messages [messages]="messages"></app-chat-messages>
+      </div>
+    </div>
+  </div>
+
+  <!-- selected room chat -->
+  <div *ngIf="selectedRoom">
+    <app-chat [room]="selectedRoom" (leaveEvent)="leave()"></app-chat>
+    <div *ngFor="let msg of messages">
+      {{ msg }}
+    </div>
+  </div>
+</div>
+
+<script></script>

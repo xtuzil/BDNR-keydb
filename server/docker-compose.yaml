@@ -1,0 +1,11 @@
+services:
+  keydb:
+      image: "eqalpha/keydb"
+      ports:
+        - "6379:6379"
+  fastapi:
+    build: .
+    ports:
+      - "8000:8000"
+  
+      

@@ -1,0 +1,28 @@
+<h1>{{ room.name }} (#{{ room.code }})</h1>
+<span> <button (click)="leaveRoom()">Leave room</button></span>
+<div class="search">
+  <input type="text" [formControl]="searchWordControl" />
+  <button (click)="search()">Search in room</button>
+  <button (click)="cancelSearch()">Cancel search</button>
+</div>
+
+<div *ngIf="searching">
+  <div *ngIf="searchedMessages$ | async as messages">
+    <app-chat-messages [messages]="messages"></app-chat-messages>
+  </div>
+</div>
+
+<div *ngIf="!searching">
+  <div *ngIf="chatMessages$ | async as messages">
+    <app-chat-messages
+      [messages]="messages"
+      [roomCode]="room.code"
+    ></app-chat-messages>
+  </div>
+
+  <p class="message-input">
+    Message:
+    <input id="in" [formControl]="messageControl" />
+    <button (click)="sendMessage()">send</button>
+  </p>
+</div>

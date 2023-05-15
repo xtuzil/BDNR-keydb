@@ -1,0 +1,22 @@
+<div>
+  <div class="input-area">
+    <input type="text" [formControl]="newRoomNameControl" />
+    <button (click)="createRoom()">Create new room</button>
+  </div>
+
+  <div class="input-area">
+    <input type="text" [formControl]="roomCodeControl" />
+    <button (click)="joinRoom()">Join room</button>
+  </div>
+
+  <hr />
+  <h3>Your chat rooms:</h3>
+  <div *ngIf="show">
+    <app-room-preview
+      *ngFor="let room of rooms"
+      [room]="room"
+      (selectedEvent)="select($event)"
+      [selected]="selectedRoom && selectedRoom.code === room.code"
+    ></app-room-preview>
+  </div>
+</div>
