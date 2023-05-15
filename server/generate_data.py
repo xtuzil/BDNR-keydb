@@ -35,6 +35,7 @@ def generate_data(keydb_client, num_users=10, num_rooms=2, num_messages_per_room
     # Generate rooms
     room_names = ["room" + str(i) for i in range(1, num_rooms + 1)]
     rooms = {}
+    response_rooms = []
     for i in range(num_rooms):
         room_name = room_names[i]
         room_code = uuid.uuid4().hex[:6].upper()
@@ -43,6 +44,7 @@ def generate_data(keydb_client, num_users=10, num_rooms=2, num_messages_per_room
         )  # select 4 random users for this room
         room = {"code": room_code, "users": room_users}
         rooms[room_code] = room
+        response_rooms.append({room_code: room_users})
 
         # Save room to KeyDB
         keydb_client.hset(f"room:{room_code}", "name", room_name)
@@ -77,3 +79,5 @@ def generate_data(keydb_client, num_users=10, num_rooms=2, num_messages_per_room
 
     # Close KeyDB connection
     keydb_client.close()
+
+    return response_rooms

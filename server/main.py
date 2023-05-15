@@ -123,8 +123,7 @@ async def get_user_rooms(username: str):
 
 @app.post("/init")
 async def init_data():
-    api.init_data()
-    return {"message": "ok"}
+    return {"created_rooms": api.init_data()}
 
 
 @app.get("/stream")
