@@ -25,7 +25,9 @@ export class AppService {
   chatMessages: Subject<Message[]> = new Subject<Message[]>();
   searchedMessages: Subject<Message[]> = new Subject<Message[]>();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.getMessagesStream();
+  }
 
   getMessagesStream(): void {
     let source = new EventSource('http://127.0.0.1:8000/stream');
